@@ -1,0 +1,26 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway-server
+  cloud:
+    config:
+      discovery:
+        enabled: true # Use Eureka for discovering the Config Server
+    gateway:
+      discovery:
+        locator:
+          enabled: true # Enable dynamic routing via Eureka
+      routes:
+        - id: main-service-route
+          uri: lb://main-service # Use Eureka load balancer for main-service
+          predicates:
+            - Path=/api/main-service/** # Match requests to this route
+          filters:
+            - StripPrefix=1 # Remove `/api` prefix from the forwarded request
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
