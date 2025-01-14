@@ -16,9 +16,7 @@ spring:
         - id: main-service-route
           uri: lb://main-service # Use Eureka load balancer for main-service
           predicates:
-            - Path=/api/main-service/** # Match requests to this route
-          filters:
-            - StripPrefix=1 # Remove `/api` prefix from the forwarded request
+            - Path=/**
 
 eureka:
   client:
