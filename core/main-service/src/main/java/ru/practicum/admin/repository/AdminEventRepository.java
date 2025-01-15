@@ -16,7 +16,8 @@ public interface AdminEventRepository extends JpaRepository<Event, Long>, AdminE
     @Query("""
         select new ru.practicum.dto.event.request.RequestCount(count(r.id))
         from Request r
-        where r.event.id=:eventId and r.status=:status
+        where r.event.id=:eventId
+        and r.status=:status
         """)
     RequestCount getRequestCountByEventAndStatus(Long eventId, Status status);
 

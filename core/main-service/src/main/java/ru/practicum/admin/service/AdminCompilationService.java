@@ -2,6 +2,7 @@ package ru.practicum.admin.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.admin.repository.AdminCompilationRepository;
 import ru.practicum.admin.repository.AdminEventRepository;
 import ru.practicum.dto.compilation.CompilationDto;
@@ -17,6 +18,7 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AdminCompilationService {
     private final AdminCompilationRepository adminCompilationRepository;
     private final AdminEventRepository adminEventRepository;

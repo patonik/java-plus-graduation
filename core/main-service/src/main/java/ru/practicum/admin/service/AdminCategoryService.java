@@ -2,7 +2,6 @@ package ru.practicum.admin.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.admin.repository.AdminCategoryRepository;
 import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.dto.category.NewCategoryDto;
@@ -13,7 +12,6 @@ import ru.practicum.model.Category;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class AdminCategoryService {
     private final AdminCategoryRepository adminCategoryRepository;
 
@@ -32,12 +30,12 @@ public class AdminCategoryService {
         if (!adminCategoryRepository.existsById(catId)) {
             throw new NotFoundException("Category with id " + catId + " does not exist");
         }
-            adminCategoryRepository.deleteById(catId);
+        adminCategoryRepository.deleteById(catId);
     }
 
     public CategoryDto updateCategory(Long catId, NewCategoryDto newCategoryDto) {
         Category found = adminCategoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException("Category with id " + catId + " does not exist"));
+            .orElseThrow(() -> new NotFoundException("Category with id " + catId + " does not exist"));
         String name = newCategoryDto.getName();
         if (!found.getName().equals(name) && adminCategoryRepository.existsByName(name)) {
             throw new ConflictException("Category with name " + name + " already exists");
