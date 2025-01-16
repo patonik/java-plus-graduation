@@ -1,0 +1,28 @@
+server:
+  port: 0
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        native:
+          searchLocations: classpath:/config/{application}
+      discovery:
+        enabled: true # Enable discovery for services
+  profiles:
+    active: native
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    registerWithEureka: true
