@@ -10,7 +10,7 @@ eureka:
     fetch-registry: true
 spring:
   application:
-    name: main-service
+    name: request-service
   profiles:
     active: native
   cloud:
