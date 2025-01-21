@@ -13,10 +13,30 @@ spring:
         locator:
           enabled: true # Enable dynamic routing via Eureka
       routes:
-        - id: main-service-route
-          uri: lb://main-service # Use Eureka load balancer for main-service
+        - id: user-service-route
+          uri: lb://user-service
           predicates:
-            - Path=/**
+            - Path=/admin/users/** # Admin user management
+
+        - id: private-event-service-route
+          uri: lb://event-service
+          predicates:
+            - Path=/users/**/events/** # Private event management for specific users
+
+        - id: admin-event-service-route
+          uri: lb://event-service
+          predicates:
+            - Path=/admin/events/** # Admin event management
+
+        - id: public-event-service-route
+          uri: lb://event-service
+          predicates:
+            - Path=/events/** # Public event endpoints
+
+        - id: request-service-route
+          uri: lb://request-service
+          predicates:
+            - Path=/users/**/requests/** # Participation requests management
 
 eureka:
   client:
