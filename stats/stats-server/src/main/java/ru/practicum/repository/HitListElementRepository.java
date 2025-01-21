@@ -1,6 +1,6 @@
 package ru.practicum.repository;
 
-import ru.practicum.dto.StatResponseDto;
+import ru.practicum.stats.dto.StatResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.List;

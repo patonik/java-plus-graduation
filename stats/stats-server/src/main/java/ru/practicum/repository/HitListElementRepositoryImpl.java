@@ -7,7 +7,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import ru.practicum.dto.StatResponseDto;
+import ru.practicum.stats.dto.StatResponseDto;
 import ru.practicum.model.ServiceHit;
 
 import java.time.LocalDateTime;
