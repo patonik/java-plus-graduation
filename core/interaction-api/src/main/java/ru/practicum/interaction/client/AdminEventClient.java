@@ -34,7 +34,7 @@ public interface AdminEventClient {
                                                  @RequestParam(required = false, defaultValue = "10")
                                                  Integer size);
 
-    @PatchMapping(value="/{eventId}", consumes = "application/json")
+    @PatchMapping(value = "/{eventId}", consumes = "application/json")
     ResponseEntity<EventFullDto> updateEvent(@PathVariable Long eventId,
                                              @RequestBody @Valid UpdateEventAdminRequest adminRequest);
 }

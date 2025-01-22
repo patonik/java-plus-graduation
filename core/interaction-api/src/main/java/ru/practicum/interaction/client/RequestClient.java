@@ -19,17 +19,17 @@ public interface RequestClient {
     @GetMapping("/users/{userId}/requests")
     ResponseEntity<List<ParticipationRequestDto>> getMyRequests(@PathVariable Long userId);
 
-    @PostMapping(value="/users/{userId}/requests", consumes = "application/json")
+    @PostMapping(value = "/users/{userId}/requests", consumes = "application/json")
     ResponseEntity<ParticipationRequestDto> addMyRequest(@PathVariable Long userId, @RequestParam Long eventId);
 
-    @PatchMapping(value="/users/{userId}/requests/{requestId}/cancel", consumes = "application/json")
+    @PatchMapping(value = "/users/{userId}/requests/{requestId}/cancel", consumes = "application/json")
     ResponseEntity<ParticipationRequestDto> cancelMyRequest(@PathVariable Long userId,
                                                             @PathVariable Long requestId);
 
     @GetMapping("/users/{userId}/requests/{eventId}")
     ResponseEntity<List<Request>> getAllRequestsForEvent(@PathVariable Long userId, @PathVariable Long eventId);
 
-    @PostMapping(value="/users/{userId}/requests/update/{status}", consumes = "application/json")
+    @PostMapping(value = "/users/{userId}/requests/update/{status}", consumes = "application/json")
     ResponseEntity<Void> updateRequestsForEvent(@PathVariable Long userId,
                                                 @PathVariable("status") Status requestStatus,
                                                 @RequestBody List<Long> requestIds);

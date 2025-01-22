@@ -57,6 +57,7 @@ public class PublicEventController implements PublicEventClient {
     public ResponseEntity<EventFullDto> getEvent(@PathVariable Long id, HttpServletRequest request) {
         return new ResponseEntity<>(publicEventService.getEvent(id, request), HttpStatus.OK);
     }
+
     @GetMapping("/internal/{id}")
     public ResponseEntity<EventFullDto> getEvent(@PathVariable Long id) {
         log.info("Get event with id {}", id);

@@ -15,19 +15,21 @@ import ru.practicum.interaction.dto.user.UserDto;
 
 import java.util.List;
 
-@FeignClient(name = "user-service", path="/admin/users")
+@FeignClient(name = "user-service", path = "/admin/users")
 public interface UserClient {
 
     @GetMapping
     ResponseEntity<List<UserDto>> getUsers(@RequestParam(required = false) List<Long> ids,
-                                                  @RequestParam(required = false,
-                                                      defaultValue = DataTransferConvention.FROM)
-                                                  Integer from,
-                                                  @RequestParam(required = false,
-                                                      defaultValue = DataTransferConvention.SIZE)
-                                                  Integer size);
+                                           @RequestParam(required = false,
+                                               defaultValue = DataTransferConvention.FROM)
+                                           Integer from,
+                                           @RequestParam(required = false,
+                                               defaultValue = DataTransferConvention.SIZE)
+                                           Integer size);
+
     @PostMapping(consumes = "application/json")
     ResponseEntity<UserDto> addUser(@RequestBody @Valid NewUserRequest newUserRequest);
+
     @DeleteMapping("/{userId}")
     ResponseEntity<Object> deleteUser(@PathVariable Long userId);
 }
