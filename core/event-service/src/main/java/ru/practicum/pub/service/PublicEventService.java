@@ -106,11 +106,28 @@ public class PublicEventService {
     private void sendHitToStatsService(HttpServletRequest request) {
         StatRequestDto hit = StatRequestDto.builder()
             .app("public-event-service")
-            .uri(request.getHeader("X-Request-URI"))
-            .ip(request.getHeader("X-Remote-Addr"))
+            .uri(request.getRequestURI())
+            .ip(request.getRemoteAddr())
             .timestamp(LocalDateTime.now())
             .build();
         httpStatsClient.sendHit(hit, StatRequestDto.class);
     }
 
+    public EventFullDto getInternalEvent(Long id) {
+        Event event = publicEventRepository.findByIdAndState(id, State.PUBLISHED)
+                .orElseThrow(() -> new NotFoundException("Event not found with id: " + id));
+        RequestCount requestCount = publicEventRepository.getRequestCountByEventAndStatus(id, Status.CONFIRMED);
+        EventFullDto eventFullDto = eventFullDtoMapper.toDto(event,
+                requestCount.getConfirmedRequests(), 0L);
+        StatParams statParams = Statistical.getParams(List.of(eventFullDto));
+        log.info("parameters for statService created: {}", statParams);
+        List<StatResponseDto> statResponseDtoList =
+                httpStatsClient.getStats(statParams.start(), statParams.end(), statParams.uriList(), true);
+        Long hits = 0L;
+        if (!statResponseDtoList.isEmpty()) {
+            hits = statResponseDtoList.getFirst().getHits();
+        }
+        eventFullDto.setViews(hits);
+        return eventFullDto;
+    }
 }

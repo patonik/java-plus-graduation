@@ -16,7 +16,7 @@ import ru.practicum.interaction.dto.event.UpdateEventAdminRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@FeignClient(name = "event-service", path = "/admin/events")
+@FeignClient(name = "event-service", path = "/admin/events", contextId = "adminEventClient")
 public interface AdminEventClient {
     @GetMapping
     ResponseEntity<List<EventFullDto>> getEvents(@RequestParam(required = false) List<Long> users,
@@ -34,7 +34,7 @@ public interface AdminEventClient {
                                                  @RequestParam(required = false, defaultValue = "10")
                                                  Integer size);
 
-    @PatchMapping("/{eventId}")
+    @PatchMapping(value="/{eventId}", consumes = "application/json")
     ResponseEntity<EventFullDto> updateEvent(@PathVariable Long eventId,
                                              @RequestBody @Valid UpdateEventAdminRequest adminRequest);
 }

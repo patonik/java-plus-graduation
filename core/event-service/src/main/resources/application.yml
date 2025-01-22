@@ -20,9 +20,9 @@ spring:
     jdbc:
       dialect: postgresql
   datasource:
-    url: jdbc:postgresql://ewm-db:5432/ewm_db
-    username: explorer
-    password: explorer
+    url: jdbc:postgresql://ewm-db:5432/ewm-main
+    username: root
+    password: root
     driver-class-name: org.postgresql.Driver
 logging:
   level:

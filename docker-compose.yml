@@ -120,6 +120,8 @@ services:
         condition: service_healthy
       stats-server:
         condition: service_healthy
+      user-service:
+        condition: service_healthy
     networks:
       - ewm-net
     environment:
@@ -129,7 +131,7 @@ services:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
       - SERVER_PORT=8082
     healthcheck:
-      test: "curl --fail --silent localhost:8081/actuator/health | grep UP || exit 1"
+      test: "curl --fail --silent localhost:8082/actuator/health | grep UP || exit 1"
       timeout: 5s
       interval: 25s
       retries: 10
@@ -144,6 +146,10 @@ services:
         condition: service_healthy
       stats-server:
         condition: service_healthy
+      user-service:
+        condition: service_healthy
+      event-service:
+        condition: service_healthy
     networks:
       - ewm-net
     environment:
@@ -153,7 +159,7 @@ services:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
       - SERVER_PORT=8083
     healthcheck:
-      test: "curl --fail --silent localhost:8081/actuator/health | grep UP || exit 1"
+      test: "curl --fail --silent localhost:8083/actuator/health | grep UP || exit 1"
       timeout: 5s
       interval: 25s
       retries: 10

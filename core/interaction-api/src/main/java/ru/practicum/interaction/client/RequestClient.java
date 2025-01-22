@@ -14,22 +14,22 @@ import ru.practicum.interaction.model.Request;
 
 import java.util.List;
 
-@FeignClient(name = "request-service", path = "/users/{userId}/requests")
+@FeignClient(name = "request-service")
 public interface RequestClient {
-    @GetMapping
+    @GetMapping("/users/{userId}/requests")
     ResponseEntity<List<ParticipationRequestDto>> getMyRequests(@PathVariable Long userId);
 
-    @PostMapping
+    @PostMapping(value="/users/{userId}/requests", consumes = "application/json")
     ResponseEntity<ParticipationRequestDto> addMyRequest(@PathVariable Long userId, @RequestParam Long eventId);
 
-    @PatchMapping("/{requestId}/cancel")
+    @PatchMapping(value="/users/{userId}/requests/{requestId}/cancel", consumes = "application/json")
     ResponseEntity<ParticipationRequestDto> cancelMyRequest(@PathVariable Long userId,
                                                             @PathVariable Long requestId);
 
-    @GetMapping("/{eventId}")
+    @GetMapping("/users/{userId}/requests/{eventId}")
     ResponseEntity<List<Request>> getAllRequestsForEvent(@PathVariable Long userId, @PathVariable Long eventId);
 
-    @PatchMapping("/update/{status}")
+    @PostMapping(value="/users/{userId}/requests/update/{status}", consumes = "application/json")
     ResponseEntity<Void> updateRequestsForEvent(@PathVariable Long userId,
                                                 @PathVariable("status") Status requestStatus,
                                                 @RequestBody List<Long> requestIds);

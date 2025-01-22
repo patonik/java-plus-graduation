@@ -26,7 +26,7 @@ public interface UserClient {
                                                   @RequestParam(required = false,
                                                       defaultValue = DataTransferConvention.SIZE)
                                                   Integer size);
-    @PostMapping
+    @PostMapping(consumes = "application/json")
     ResponseEntity<UserDto> addUser(@RequestBody @Valid NewUserRequest newUserRequest);
     @DeleteMapping("/{userId}")
     ResponseEntity<Object> deleteUser(@PathVariable Long userId);

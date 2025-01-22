@@ -21,22 +21,32 @@ spring:
         - id: private-event-service-route
           uri: lb://event-service
           predicates:
-            - Path=/users/**/events/** # Private event management for specific users
+            - Path=/users/{userId}/events/** # Private event management for specific users
+            - Path=/users/*/events/** # Private event management for specific users
 
         - id: admin-event-service-route
           uri: lb://event-service
           predicates:
-            - Path=/admin/events/** # Admin event management
+            - Path=/admin/** # Admin event management
 
         - id: public-event-service-route
           uri: lb://event-service
           predicates:
             - Path=/events/** # Public event endpoints
+        - id: public-category-service-route
+          uri: lb://event-service
+          predicates:
+            - Path=/categories/** # Public event endpoints
+        - id: public-compilation-service-route
+          uri: lb://event-service
+          predicates:
+            - Path=/compilations/** # Public event endpoints
 
         - id: request-service-route
           uri: lb://request-service
           predicates:
-            - Path=/users/**/requests/** # Participation requests management
+            - Path=/users/{userId}/requests/** # Participation requests management
+            - Path=/users/*/requests/** # Participation requests management
 
 eureka:
   client:

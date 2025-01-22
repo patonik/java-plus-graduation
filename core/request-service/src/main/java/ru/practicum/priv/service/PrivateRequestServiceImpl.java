@@ -61,7 +61,7 @@ public class PrivateRequestServiceImpl implements PrivateRequestService {
                 throw new RuntimeException("Event not found");
             }
         } catch (FeignException.NotFound e) {
-            throw new RuntimeException(e.getMessage());
+            throw new ConflictException(e.getMessage());
         }
         Event event = eventFullDtoMapper.toEntity(eventFullDto);
         if (userId.equals(event.getInitiator().getId())) {

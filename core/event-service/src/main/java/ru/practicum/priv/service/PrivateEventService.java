@@ -179,16 +179,16 @@ public class PrivateEventService {
         if (!exists) {
             throw new NotFoundException("Event not found: " + eventId);
         }
-        List<ParticipationRequestDto> participationRequestDtos;
+        List<Request> requests;
         try {
-            participationRequestDtos = requestClient.getMyRequests(userId).getBody();
-            if (participationRequestDtos == null) {
+            requests = requestClient.getAllRequestsForEvent(userId, eventId).getBody();
+            if (requests == null) {
                 throw new RuntimeException("call for RequestDtos failed");
             }
         } catch (FeignException.NotFound e) {
             throw new RuntimeException(e.getMessage());
         }
-        return participationRequestDtos;
+        return new ArrayList<>(requestDtoMapper.toParticipationRequestDtos(requests));
     }
 
     @Transactional

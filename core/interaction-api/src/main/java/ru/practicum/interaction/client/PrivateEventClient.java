@@ -22,9 +22,9 @@ import ru.practicum.interaction.dto.event.request.ParticipationRequestDto;
 
 import java.util.List;
 
-@FeignClient(name = "event-service", path = "users/{userId}/events")
+@FeignClient(name = "event-service", contextId = "privateEventClient")
 public interface PrivateEventClient {
-    @GetMapping
+    @GetMapping("/users/{userId}/events")
     ResponseEntity<List<EventShortDto>> getMyEvents(@PathVariable("userId") @Min(1) @NotNull Long userId,
                                                     @RequestParam(required = false,
                                                         defaultValue = DataTransferConvention.FROM)
@@ -32,25 +32,31 @@ public interface PrivateEventClient {
                                                     @RequestParam(required = false,
                                                         defaultValue = DataTransferConvention.SIZE)
                                                     Integer size);
-    @PostMapping
+
+    @PostMapping(value = "/users/{userId}/events", consumes = "application/json")
     ResponseEntity<EventFullDto> addEvent(@PathVariable("userId") @Min(1) @NotNull Long userId,
                                           @RequestBody @Valid NewEventDto newEventDto);
-    @GetMapping("/{eventId}")
-    ResponseEntity<EventFullDto> getMyEvent(@PathVariable @Min(1) @NotNull Long userId,
-                                            @PathVariable @Min(1) @NotNull Long eventId);
-    @PatchMapping("/{eventId}")
-    ResponseEntity<EventFullDto> updateMyEvent(@PathVariable @Min(1) @NotNull Long userId,
-                                               @PathVariable @Min(1) @NotNull Long eventId,
+
+    @GetMapping("/users/{userId}/events/{eventId}")
+    ResponseEntity<EventFullDto> getMyEvent(@PathVariable("userId") @Min(1) @NotNull Long userId,
+                                            @PathVariable("eventId") @Min(1) @NotNull Long eventId);
+
+    @PatchMapping(value = "/users/{userId}/events/{eventId}", consumes = "application/json")
+    ResponseEntity<EventFullDto> updateMyEvent(@PathVariable("userId") @Min(1) @NotNull Long userId,
+                                               @PathVariable("eventId") @Min(1) @NotNull Long eventId,
                                                @RequestBody @Valid
                                                UpdateEventUserRequest updateEventUserRequest);
-    @GetMapping("/{eventId}/requests")
-    ResponseEntity<List<ParticipationRequestDto>> getMyEventRequests(@PathVariable @Min(1) @NotNull Long userId,
-                                                                     @PathVariable @Min(1) @NotNull
-                                                                     Long eventId);
-    @PatchMapping("/{eventId}/requests")
+
+    @GetMapping("/users/{userId}/events/{eventId}/requests")
+    ResponseEntity<List<ParticipationRequestDto>> getMyEventRequests(
+        @PathVariable("userId") @Min(1) @NotNull Long userId,
+        @PathVariable("eventId") @Min(1) @NotNull
+        Long eventId);
+
+    @PatchMapping(value = "/users/{userId}/events/{eventId}/requests", consumes = "application/json")
     ResponseEntity<EventRequestStatusUpdateResult> updateMyEventRequests(
-        @PathVariable @Min(1) @NotNull Long userId,
-        @PathVariable @Min(1) @NotNull Long eventId,
+        @PathVariable("userId") @Min(1) @NotNull Long userId,
+        @PathVariable("eventId") @Min(1) @NotNull Long eventId,
         @RequestBody @Valid
         EventRequestStatusUpdateRequest updateRequest);
 }

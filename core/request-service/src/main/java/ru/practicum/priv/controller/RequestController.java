@@ -66,10 +66,10 @@ public class RequestController implements RequestClient {
             HttpStatus.OK);
     }
 
-    @PatchMapping("/update/{status}")
+    @PostMapping("/update/{status}")
     public ResponseEntity<Void> updateRequestsForEvent(@PathVariable Long userId,
-                                                                          @PathVariable("status") Status requestStatus,
-                                                                          @RequestBody List<Long> requestIds) {
+                                                       @PathVariable("status") Status requestStatus,
+                                                       @RequestBody List<Long> requestIds) {
         log.atInfo()
             .addArgument(userId)
             .addArgument(requestStatus)
