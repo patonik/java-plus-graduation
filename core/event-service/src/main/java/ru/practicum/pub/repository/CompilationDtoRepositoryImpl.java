@@ -1,8 +1,8 @@
 package ru.practicum.pub.repository;
 
+import feign.FeignException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Tuple;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -10,21 +10,16 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
-import ru.practicum.stats.HttpStatsClient;
-import ru.practicum.stats.dto.StatResponseDto;
+import ru.practicum.interaction.client.RequestClient;
 import ru.practicum.interaction.dto.event.EventShortDto;
-import ru.practicum.interaction.dto.event.request.Status;
+import ru.practicum.interaction.dto.event.request.RequestCount;
 import ru.practicum.interaction.model.Compilation;
-import ru.practicum.interaction.model.Request;
 import ru.practicum.interaction.util.StatParams;
 import ru.practicum.interaction.util.Statistical;
+import ru.practicum.stats.HttpStatsClient;
+import ru.practicum.stats.dto.StatResponseDto;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -52,7 +47,7 @@ public class CompilationDtoRepositoryImpl implements CompilationDtoRepository {
 
     @Override
     public void populateEventShortDtos(Set<EventShortDto> eventShortDtos,
-                                       HttpStatsClient httpStatsClient) {
+                                       HttpStatsClient httpStatsClient, RequestClient requestClient) {
         // sort by EventShortDtos by id and put into map
         Map<Long, EventShortDto> sortedDtoMap =
                 eventShortDtos.stream().sorted(Comparator.comparingLong(EventShortDto::getId)).collect(
@@ -62,8 +57,8 @@ public class CompilationDtoRepositoryImpl implements CompilationDtoRepository {
         log.info("Populated EventShortDtos: {}", sortedDtoMap);
 
         // get confirmed request amounts for each id in the map sorted by id
-        Map<Long, Long> confReqMap = getConfReqMapSortedById(sortedDtoMap.keySet());
-        log.info("Populated confReqList: {}", confReqMap);
+        populateConfirmedRequests(sortedDtoMap, requestClient);
+        log.info("confReq populated");
 
         // get map of hits for each event id (no entries for events without views)
         StatParams statParams = Statistical.getParams(new ArrayList<>(eventShortDtos));
@@ -77,23 +72,25 @@ public class CompilationDtoRepositoryImpl implements CompilationDtoRepository {
         //populate EventShortDtos with confirmed request amounts and views
         for (EventShortDto eventShortDto : sortedDtoMap.values()) {
             Long eventId = eventShortDto.getId();
-            eventShortDto.setConfirmedRequests(confReqMap.getOrDefault(eventId, 0L));
             eventShortDto.setViews(hitMap.getOrDefault(eventId, 0L));
         }
     }
 
-    private Map<Long, Long> getConfReqMapSortedById(Set<Long> sortedDtoKeySet) {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<Tuple> cq = cb.createQuery(Tuple.class);
-        Root<Request> root = cq.from(Request.class);
-        cq.multiselect(root.get("event").get("id"), cb.count(root));
-        cq.where(root.get("event").get("id").in(sortedDtoKeySet), cb.equal(root.get("status"), Status.CONFIRMED));
-        cq.groupBy(root.get("event").get("id"));
-        cq.orderBy(cb.asc(root.get("event").get("id")));
-        List<Tuple> tupleList = em.createQuery(cq).getResultList();
-        return tupleList.stream()
-                .collect(Collectors.toMap(tuple -> tuple.get(0, Long.class), tuple -> tuple.get(1, Long.class)));
+    private void populateConfirmedRequests(Map<Long, EventShortDto> sortedDto, RequestClient requestClient) {
+        for (Long l : sortedDto.keySet()) {
+            RequestCount requestCount = null;
+            try {
+                EventShortDto eventShortDto = sortedDto.get(l);
+                requestCount = requestClient.getAllConfirmedRequestsForEvent(eventShortDto.getInitiator().getId(),
+                        l).getBody();
+                if (requestCount == null) {
+                    eventShortDto.setConfirmedRequests(0L);
+                } else {
+                    eventShortDto.setConfirmedRequests(requestCount.getConfirmedRequests());
+                }
+            } catch (FeignException.NotFound e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
-
-
 }

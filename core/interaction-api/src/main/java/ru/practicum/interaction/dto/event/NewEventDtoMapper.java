@@ -12,7 +12,8 @@ public interface NewEventDtoMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "publishedOn", ignore = true)
     @Mapping(target = "createdOn", ignore = true)
-    @Mapping(target = "initiator", source = "user")
+    @Mapping(target = "initiatorId", source = "user.id")
+    @Mapping(target = "initiatorName", source = "user.name")
     @Mapping(target = "state", source = "state")
     @Mapping(target = "category", source = "category")
     Event toEvent(NewEventDto newEventDto, User user, Category category, State state);

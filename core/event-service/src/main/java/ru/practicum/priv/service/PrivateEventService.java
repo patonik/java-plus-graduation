@@ -18,11 +18,7 @@ import ru.practicum.interaction.dto.event.State;
 import ru.practicum.interaction.dto.event.UpdateEventUserRequest;
 import ru.practicum.interaction.dto.event.UpdateEventUserRequestMapper;
 import ru.practicum.interaction.dto.event.UserStateAction;
-import ru.practicum.interaction.dto.event.request.EventRequestStatusUpdateRequest;
-import ru.practicum.interaction.dto.event.request.EventRequestStatusUpdateResult;
-import ru.practicum.interaction.dto.event.request.ParticipationRequestDto;
-import ru.practicum.interaction.dto.event.request.RequestDtoMapper;
-import ru.practicum.interaction.dto.event.request.Status;
+import ru.practicum.interaction.dto.event.request.*;
 import ru.practicum.interaction.dto.user.UserDto;
 import ru.practicum.interaction.dto.user.UserDtoMapper;
 import ru.practicum.stats.HttpStatsClient;
@@ -101,6 +97,16 @@ public class PrivateEventService {
             return eventShortDtos;
         }
         for (EventShortDto eventShortDto : eventShortDtos) {
+            RequestCount requestCount = null;
+            try {
+                requestCount = requestClient.getAllConfirmedRequestsForEvent(eventShortDto.getInitiator().getId(), eventShortDto.getId()).getBody();
+                if (requestCount == null) {
+                    throw new RuntimeException("Error trying to count requests");
+                }
+            } catch (FeignException.NotFound e) {
+                throw new RuntimeException(e);
+            }
+            eventShortDto.setConfirmedRequests(requestCount.getConfirmedRequests());
             Long eventId = eventShortDto.getId();
             eventShortDto.setViews(hitMap.getOrDefault(eventId, 0L));
         }
@@ -113,8 +119,16 @@ public class PrivateEventService {
         Event event =
             privateEventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new NotFoundException("Event not found: " + eventId));
-        Long confirmedRequests =
-            privateEventRepository.getRequestCountByEventAndStatus(eventId, Status.CONFIRMED).getConfirmedRequests();
+        RequestCount requestCount = null;
+        try {
+            requestCount = requestClient.getAllConfirmedRequestsForEvent(event.getInitiatorId(), eventId).getBody();
+            if (requestCount == null) {
+                throw new RuntimeException("Error trying to count requests");
+            }
+        } catch (FeignException.NotFound e) {
+            throw new RuntimeException(e);
+        }
+        Long confirmedRequests = requestCount.getConfirmedRequests();
         EventFullDto eventFullDto = eventFullDtoMapper.toDto(event, confirmedRequests, 0L);
         StatParams statParams = Statistical.getParams(List.of(eventFullDto));
         log.info("parameters for statService created: {}", statParams);
@@ -157,8 +171,16 @@ public class PrivateEventService {
                 break;
         }
         event = privateEventRepository.save(event);
-        Long confirmedRequests =
-            privateEventRepository.getRequestCountByEventAndStatus(eventId, Status.CONFIRMED).getConfirmedRequests();
+        RequestCount requestCount = null;
+        try {
+            requestCount = requestClient.getAllConfirmedRequestsForEvent(event.getInitiatorId(), eventId).getBody();
+            if (requestCount == null) {
+                throw new RuntimeException("Error trying to count requests");
+            }
+        } catch (FeignException.NotFound e) {
+            throw new RuntimeException(e);
+        }
+        Long confirmedRequests = requestCount.getConfirmedRequests();
         EventFullDto dto = eventFullDtoMapper.toDto(event, confirmedRequests, 0L);
         StatParams statParams = Statistical.getParams(List.of(dto));
         log.info("parameters for statService created: {}", statParams);
@@ -208,7 +230,7 @@ public class PrivateEventService {
                                                            Event event) {
         Long eventId = event.getId();
         Integer participantLimit = event.getParticipantLimit();
-        Long initiatorId = event.getInitiator().getId();
+        Long initiatorId = event.getInitiatorId();
         if (participantLimit.equals(0) || event.getRequestModeration().equals(false)) {
             return new EventRequestStatusUpdateResult();
         }

@@ -51,9 +51,10 @@ public class Event {
     private String description;
     @Column(nullable = false)
     private LocalDateTime eventDate;
-    @ManyToOne(targetEntity = User.class, fetch = FetchType.LAZY)
-    @JoinColumn(name = "USER_ID", referencedColumnName = "ID", nullable = false)
-    private User initiator;
+    @Column(nullable = false)
+    private Long initiatorId;
+    @Column(nullable = false)
+    private String initiatorName;
     @Embedded
     @AttributeOverrides({
         @AttributeOverride(name = "lat", column = @Column(name = "LOCATION_LAT", nullable = false)),

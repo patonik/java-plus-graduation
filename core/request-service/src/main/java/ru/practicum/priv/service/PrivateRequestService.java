@@ -3,6 +3,7 @@ package ru.practicum.priv.service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import ru.practicum.interaction.dto.event.request.ParticipationRequestDto;
+import ru.practicum.interaction.dto.event.request.RequestCount;
 import ru.practicum.interaction.dto.event.request.Status;
 import ru.practicum.interaction.model.Request;
 
@@ -21,4 +22,6 @@ public interface PrivateRequestService {
     void updateRequestsForEvent(@PathVariable Long userId,
                                 @PathVariable("status") Status requestStatus,
                                 @RequestBody List<Long> requestIds);
+
+    RequestCount getAllConfirmedRequestsForEvent(Long userId, Long eventId);
 }

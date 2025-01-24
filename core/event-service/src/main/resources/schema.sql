@@ -27,16 +27,13 @@ CREATE TABLE IF NOT EXISTS public.EVENTS
     PARTICIPANT_LIMIT  int                         NOT NULL,
     REQUEST_MODERATION boolean                     NOT NULL,
     TITLE              character varying(128)      NOT NULL,
-    USER_ID            bigint                      NOT NULL,
+    INITIATOR_ID       bigint                      NOT NULL,
+    INITIATOR_NAME     character varying(128)      NOT NULL,
     LOCATION_LAT       double precision            NOT NULL,
     LOCATION_LON       double precision            NOT NULL,
     EVENT_STATE        character varying(64)       NOT NULL,
 
     CONSTRAINT event_pkey PRIMARY KEY (ID),
-    CONSTRAINT event_user_fk FOREIGN KEY (USER_ID)
-        REFERENCES public.USERS (ID)
-        ON UPDATE CASCADE
-        ON DELETE CASCADE,
     CONSTRAINT event_cat_fk FOREIGN KEY (CATEGORY_ID)
         REFERENCES public.CATEGORIES (ID)
         ON UPDATE CASCADE

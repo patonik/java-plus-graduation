@@ -2,6 +2,7 @@ package ru.practicum.priv.service;
 
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.interaction.client.PublicEventClient;
@@ -10,6 +11,7 @@ import ru.practicum.interaction.dto.event.EventFullDto;
 import ru.practicum.interaction.dto.event.EventFullDtoMapper;
 import ru.practicum.interaction.dto.event.State;
 import ru.practicum.interaction.dto.event.request.ParticipationRequestDto;
+import ru.practicum.interaction.dto.event.request.RequestCount;
 import ru.practicum.interaction.dto.event.request.RequestDtoMapper;
 import ru.practicum.interaction.dto.event.request.Status;
 import ru.practicum.interaction.dto.user.UserDto;
@@ -28,6 +30,7 @@ import java.util.List;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class PrivateRequestServiceImpl implements PrivateRequestService {
     private final RequestRepository requestRepository;
     private final RequestDtoMapper requestMapper;
@@ -64,7 +67,8 @@ public class PrivateRequestServiceImpl implements PrivateRequestService {
             throw new ConflictException(e.getMessage());
         }
         Event event = eventFullDtoMapper.toEntity(eventFullDto);
-        if (userId.equals(event.getInitiator().getId())) {
+        if (userId.equals(event.getInitiatorId())) {
+            log.info("Adding new request from {} for the event of user {}", userId, event.getInitiatorId());
             throw new ConflictException("""
                 the initiator of the event cannot add a participation request for their own event.
                 """);
@@ -72,7 +76,7 @@ public class PrivateRequestServiceImpl implements PrivateRequestService {
         if (!event.getState().equals(State.PUBLISHED)) {
             throw new ConflictException("cannot participate in an unpublished event.");
         }
-        if (requestRepository.existsByRequesterIdAndEventId(userId, eventId)) {
+        if (requestRepository.existsByRequesterAndEventId(userId, eventId)) {
             throw new ConflictException("request already exists");
         }
         long confirmedAmount = requestRepository.countByEventIdAndStatus(eventId, Status.CONFIRMED);
@@ -84,14 +88,14 @@ public class PrivateRequestServiceImpl implements PrivateRequestService {
         if (!event.getRequestModeration() || participantLimit == 0) {
             status = Status.CONFIRMED;
         }
-        var request = new Request(null, LocalDateTime.now(), user, event, status);
+        var request = new Request(null, LocalDateTime.now(), user.getId(), event.getId(), status);
 
         return requestMapper.toParticipationRequestDto(requestRepository.save(request));
     }
 
     @Override
     public ParticipationRequestDto cancelMyRequest(Long userId, Long requestId) {
-        var request = requestRepository.findByIdAndRequesterId(requestId, userId).orElseThrow(
+        var request = requestRepository.findByIdAndRequester(requestId, userId).orElseThrow(
             () -> new NotFoundException(String.format("request with id %s", requestId)));
         request.setStatus(Status.CANCELED);
         return requestMapper.toParticipationRequestDto(request);
@@ -105,5 +109,10 @@ public class PrivateRequestServiceImpl implements PrivateRequestService {
     @Override
     public void updateRequestsForEvent(Long userId, Status requestStatus, List<Long> requestIds) {
         requestRepository.updateAllByIds(new HashSet<>(requestIds), requestStatus);
+    }
+
+    @Override
+    public RequestCount getAllConfirmedRequestsForEvent(Long userId, Long eventId) {
+        return new RequestCount(requestRepository.countByEventIdAndStatus(eventId, Status.CONFIRMED));
     }
 }

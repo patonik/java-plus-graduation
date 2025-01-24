@@ -2,21 +2,13 @@ package ru.practicum.priv.repository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Subquery;
+import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.Pageable;
 import ru.practicum.interaction.dto.category.CategoryDto;
 import ru.practicum.interaction.dto.event.EventShortDto;
-import ru.practicum.interaction.dto.event.request.Status;
 import ru.practicum.interaction.dto.user.UserShortDto;
 import ru.practicum.interaction.model.Category;
 import ru.practicum.interaction.model.Event;
-import ru.practicum.interaction.model.Request;
-import ru.practicum.interaction.model.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,14 +24,6 @@ public class PrivateEventShortDtoRepositoryImpl implements PrivateEventShortDtoR
         CriteriaQuery<EventShortDto> cq = cb.createQuery(EventShortDto.class);
         Root<Event> eventRoot = cq.from(Event.class);
         Join<Event, Category> categoryJoin = eventRoot.join("category");
-        Join<Event, User> userJoin = eventRoot.join("initiator");
-        Subquery<Long> subquery = cq.subquery(Long.class);
-        Root<Request> subRoot = subquery.from(Request.class);
-        subquery.select(cb.count(subRoot.get("id")));
-        subquery.where(
-                cb.equal(subRoot.get("event").get("id"), eventRoot.get("id")),
-                cb.equal(subRoot.get("status"), Status.CONFIRMED)
-        );
         cq.select(cb.construct(
                 EventShortDto.class,
                 eventRoot.get("id"),
@@ -47,11 +31,11 @@ public class PrivateEventShortDtoRepositoryImpl implements PrivateEventShortDtoR
                 cb.construct(
                         CategoryDto.class, categoryJoin.get("id"), categoryJoin.get("name")
                 ),
-                subquery.getSelection(),
+                cb.nullLiteral(Long.class),
                 eventRoot.get("eventDate"),
                 eventRoot.get("createdOn"),
                 cb.construct(
-                        UserShortDto.class, userJoin.get("id"), userJoin.get("name")
+                        UserShortDto.class, eventRoot.get("initiatorId"), eventRoot.get("initiatorName")
                 ),
                 eventRoot.get("paid"),
                 eventRoot.get("title"),
@@ -73,7 +57,7 @@ public class PrivateEventShortDtoRepositoryImpl implements PrivateEventShortDtoR
         List<Predicate> predicates = new ArrayList<>();
         Long userId = (Long) args[0];
         if (userId != null) {
-            predicates.add(cb.equal(eventRoot.get("initiator").get("id"), userId));
+            predicates.add(cb.equal(eventRoot.get("initiatorId"), userId));
         }
         return predicates;
     }

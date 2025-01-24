@@ -17,6 +17,8 @@ import java.util.Set;
 public interface CompilationDtoMapper {
     CompilationDto toCompilationDto(Compilation compilation);
 
+    @Mapping(target = "initiator.id", source = "event.initiatorId")
+    @Mapping(target = "initiator.name", source = "event.initiatorName")
     EventShortDto toEventShortDto(Event event);
 
     @Mapping(target = "id", ignore = true)

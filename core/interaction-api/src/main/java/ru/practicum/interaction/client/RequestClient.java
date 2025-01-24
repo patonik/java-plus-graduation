@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import ru.practicum.interaction.dto.event.request.ParticipationRequestDto;
+import ru.practicum.interaction.dto.event.request.RequestCount;
 import ru.practicum.interaction.dto.event.request.Status;
 import ru.practicum.interaction.model.Request;
 
@@ -33,4 +34,7 @@ public interface RequestClient {
     ResponseEntity<Void> updateRequestsForEvent(@PathVariable Long userId,
                                                 @PathVariable("status") Status requestStatus,
                                                 @RequestBody List<Long> requestIds);
+
+    @GetMapping("/users/{userId}/requests/{eventId}/count")
+    ResponseEntity<RequestCount> getAllConfirmedRequestsForEvent(@PathVariable Long userId, @PathVariable Long eventId);
 }

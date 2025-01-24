@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.interaction.client.RequestClient;
 import ru.practicum.interaction.dto.event.request.ParticipationRequestDto;
+import ru.practicum.interaction.dto.event.request.RequestCount;
 import ru.practicum.interaction.dto.event.request.Status;
 import ru.practicum.interaction.model.Request;
 import ru.practicum.priv.service.PrivateRequestServiceImpl;
@@ -76,5 +77,10 @@ public class RequestController implements RequestClient {
             .log("Received request to update participation requests with userId: {} to requestStatus: {}");
         requestService.updateRequestsForEvent(userId, requestStatus, requestIds);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("/{eventId}/count")
+    public ResponseEntity<RequestCount> getAllConfirmedRequestsForEvent(@PathVariable Long userId, @PathVariable Long eventId) {
+        return new ResponseEntity<>(requestService.getAllConfirmedRequestsForEvent(userId, eventId), HttpStatus.OK);
     }
 }

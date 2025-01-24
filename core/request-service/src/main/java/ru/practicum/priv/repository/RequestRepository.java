@@ -17,15 +17,15 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
         SELECT
             new ru.practicum.interaction.dto.event.request.ParticipationRequestDto(
                 r.id,
-                r.event.id,
+                r.eventId,
                 r.created,
-                r.requester.id,
+                r.requester,
                 r.status
             )
         FROM
             Request r
         WHERE
-            r.requester.id = :userId
+            r.requester = :userId
         """)
     List<ParticipationRequestDto> findDtosByRequesterId(Long userId);
 
@@ -33,15 +33,15 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
         SELECT
             new ru.practicum.interaction.dto.event.request.ParticipationRequestDto(
                 r.id,
-                r.event.id,
+                r.eventId,
                 r.created,
-                r.requester.id,
+                r.requester,
                 r.status
             )
         FROM
             Request r
         WHERE
-            r.event.id = :eventId
+            r.eventId = :eventId
         """)
     List<ParticipationRequestDto> findDtosByEventId(Long eventId);
 
@@ -49,9 +49,9 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
         SELECT
             new ru.practicum.interaction.dto.event.request.ParticipationRequestDto(
                 r.id,
-                r.event.id,
+                r.eventId,
                 r.created,
-                r.requester.id,
+                r.requester,
                 r.status
             )
         FROM
@@ -69,9 +69,9 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
         """)
     void updateAllByIds(Set<Long> ids, Status status);
 
-    Optional<Request> findByIdAndRequesterId(Long requestId, Long userId);
+    Optional<Request> findByIdAndRequester(Long request, Long userId);
 
-    boolean existsByRequesterIdAndEventId(Long userId, Long eventId);
+    boolean existsByRequesterAndEventId(Long userId, Long eventId);
 
     long countByEventIdAndStatus(Long eventId, Status status);
 

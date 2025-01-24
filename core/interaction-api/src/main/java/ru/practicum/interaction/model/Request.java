@@ -1,14 +1,12 @@
 package ru.practicum.interaction.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -33,12 +31,10 @@ public class Request {
     private Long id;
     @CreationTimestamp
     private LocalDateTime created;
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = User.class)
-    @JoinColumn(name = "USER_ID", referencedColumnName = "ID", nullable = false)
-    private User requester;
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Event.class)
-    @JoinColumn(name = "EVENT_ID", referencedColumnName = "ID", nullable = false)
-    private Event event;
+    @Column(nullable = false)
+    private Long requester;
+    @Column(nullable = false)
+    private Long eventId;
     @Enumerated(EnumType.STRING)
     private Status status;
 }

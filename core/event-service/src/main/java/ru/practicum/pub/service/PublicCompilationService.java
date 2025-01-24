@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import ru.practicum.interaction.client.RequestClient;
 import ru.practicum.stats.HttpStatsClient;
 import ru.practicum.interaction.dto.compilation.CompilationDto;
 import ru.practicum.interaction.dto.compilation.CompilationDtoMapper;
@@ -25,6 +26,7 @@ public class PublicCompilationService {
     private final PublicCompilationRepository publicCompilationRepository;
     private final HttpStatsClient httpStatsClient;
     private final CompilationDtoMapper compilationDtoMapper;
+    private final RequestClient requestClient;
 
     public List<CompilationDto> getCompilations(Boolean pinned, Integer from, Integer size) {
         Pageable pageable = PageRequest.of(from, size);
@@ -39,7 +41,7 @@ public class PublicCompilationService {
                 .collect(Collectors.toSet());
         if (!eventShortDtoSet.isEmpty()) {
             publicCompilationRepository.populateEventShortDtos(
-                    eventShortDtoSet, httpStatsClient);
+                    eventShortDtoSet, httpStatsClient, requestClient);
         }
         return compilationDtos;
     }

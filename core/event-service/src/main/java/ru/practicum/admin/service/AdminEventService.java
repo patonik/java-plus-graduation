@@ -1,5 +1,6 @@
 package ru.practicum.admin.service;
 
+import feign.FeignException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,18 +8,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.interaction.dto.event.AdminStateAction;
-import ru.practicum.stats.HttpStatsClient;
 import ru.practicum.admin.repository.AdminCategoryRepository;
 import ru.practicum.admin.repository.AdminEventRepository;
-import ru.practicum.stats.dto.StatResponseDto;
-import ru.practicum.interaction.dto.event.EventFullDto;
-import ru.practicum.interaction.dto.event.EventFullDtoMapper;
-import ru.practicum.interaction.dto.event.State;
-import ru.practicum.interaction.dto.event.UpdateEventAdminRequest;
-import ru.practicum.interaction.dto.event.UpdateEventAdminRequestMapper;
+import ru.practicum.interaction.client.RequestClient;
+import ru.practicum.interaction.dto.event.*;
 import ru.practicum.interaction.dto.event.request.RequestCount;
-import ru.practicum.interaction.dto.event.request.Status;
 import ru.practicum.interaction.exception.ConflictException;
 import ru.practicum.interaction.exception.NotFoundException;
 import ru.practicum.interaction.model.Category;
@@ -26,6 +20,8 @@ import ru.practicum.interaction.model.Event;
 import ru.practicum.interaction.util.EventSearchParams;
 import ru.practicum.interaction.util.StatParams;
 import ru.practicum.interaction.util.Statistical;
+import ru.practicum.stats.HttpStatsClient;
+import ru.practicum.stats.dto.StatResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -43,6 +39,7 @@ public class AdminEventService {
     private final UpdateEventAdminRequestMapper updateEventAdminRequestMapper;
     private final EventFullDtoMapper eventFullDtoMapper;
     private final HttpStatsClient httpStatsClient;
+    private final RequestClient requestClient;
 
     public List<EventFullDto> getEvents(EventSearchParams eventSearchParams) {
         LocalDateTime rangeStart = eventSearchParams.rangeStart();
@@ -53,13 +50,13 @@ public class AdminEventService {
         Pageable pageable = PageRequest.of(eventSearchParams.from(), eventSearchParams.size());
 
         List<EventFullDto> eventFullDtoListSorted = adminEventRepository.getEventsOrderedById(
-            eventSearchParams.users(),
-            eventSearchParams.states(),
-            eventSearchParams.categories(),
-            eventSearchParams.loci(),
-            rangeStart,
-            rangeEnd,
-            pageable);
+                eventSearchParams.users(),
+                eventSearchParams.states(),
+                eventSearchParams.categories(),
+                eventSearchParams.loci(),
+                rangeStart,
+                rangeEnd,
+                pageable);
         if (eventFullDtoListSorted.isEmpty()) {
             return eventFullDtoListSorted;
         }
@@ -67,24 +64,40 @@ public class AdminEventService {
         StatParams statParams = Statistical.getParams(new ArrayList<>(eventFullDtoListSorted));
         log.info("parameters for getting views of events: {}", eventFullDtoListSorted);
         List<StatResponseDto> statResponseDtoList =
-            httpStatsClient.getStats(statParams.start(), statParams.end(), statParams.uriList(), true);
-        if (statResponseDtoList.isEmpty()) {
-            return eventFullDtoListSorted;
+                httpStatsClient.getStats(statParams.start(), statParams.end(), statParams.uriList(), true);
+        Map<Long, Long> hitMap = null;
+        if (!statResponseDtoList.isEmpty()) {
+            hitMap = statResponseDtoList
+                    .stream()
+                    .collect(Collectors.toMap(x -> Long.parseLong(x.getUri().split("/")[2]), StatResponseDto::getHits));
         }
-        Map<Long, Long> hitMap = statResponseDtoList
-            .stream()
-            .collect(Collectors.toMap(x -> Long.parseLong(x.getUri().split("/")[2]), StatResponseDto::getHits));
         for (EventFullDto eventFullDto : eventFullDtoListSorted) {
+            RequestCount requestCount = null;
+            try {
+                requestCount = requestClient.getAllConfirmedRequestsForEvent(eventFullDto.getInitiator().getId(), eventFullDto.getId()).getBody();
+                if (requestCount == null) {
+                    throw new RuntimeException("Error trying to count requests");
+                }
+            } catch (FeignException.NotFound e) {
+                throw new RuntimeException(e);
+            }
+            Long confirmedRequests = requestCount.getConfirmedRequests();
+            eventFullDto.setConfirmedRequests(confirmedRequests == null ? 0 : confirmedRequests);
             Long eventId = eventFullDto.getId();
-            eventFullDto.setViews(hitMap.getOrDefault(eventId, 0L));
+            if (hitMap != null && hitMap.containsKey(eventId)) {
+                eventFullDto.setViews(hitMap.get(eventId));
+            } else {
+                eventFullDto.setViews(0L);
+            }
         }
+        log.info("events for getting views of events: {}", eventFullDtoListSorted);
         return eventFullDtoListSorted;
     }
 
     @Transactional
     public EventFullDto updateEvent(Long eventId, UpdateEventAdminRequest adminRequest) {
         Event event =
-            adminEventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found"));
+                adminEventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found"));
         if (!event.getState().equals(State.PENDING)) {
             throw new ConflictException("cannot publish twice");
         }
@@ -92,14 +105,14 @@ public class AdminEventService {
         Category category;
         if (categoryId != null) {
             category =
-                categoryRepository.findById(categoryId).orElseThrow(() -> new NotFoundException("Category not found"));
+                    categoryRepository.findById(categoryId).orElseThrow(() -> new NotFoundException("Category not found"));
         } else {
             category = event.getCategory();
         }
         log.info("updating event: {}", event);
 
         event = updateEventAdminRequestMapper.updateEvent(adminRequest, event,
-            category);
+                category);
         log.info("updated event: {}", event);
         log.info("saving...");
         switch (adminRequest.getStateAction()) {
@@ -116,13 +129,21 @@ public class AdminEventService {
         }
         event = adminEventRepository.save(event);
 
-        RequestCount requestCount = adminEventRepository.getRequestCountByEventAndStatus(eventId, Status.CONFIRMED);
+        RequestCount requestCount = null;
+        try {
+            requestCount = requestClient.getAllConfirmedRequestsForEvent(event.getInitiatorId(), eventId).getBody();
+            if (requestCount == null) {
+                throw new RuntimeException("Error trying to count requests");
+            }
+        } catch (FeignException.NotFound e) {
+            throw new RuntimeException(e);
+        }
         EventFullDto eventFullDto = eventFullDtoMapper.toDto(event, requestCount.getConfirmedRequests(), 0L);
 
         StatParams statParams = Statistical.getParams(List.of(eventFullDto));
         log.info("parameters for getting views of event: {}", statParams);
         List<StatResponseDto> statResponseDtoList =
-            httpStatsClient.getStats(statParams.start(), statParams.end(), statParams.uriList(), true);
+                httpStatsClient.getStats(statParams.start(), statParams.end(), statParams.uriList(), true);
         Long hits = 0L;
         if (!statResponseDtoList.isEmpty()) {
             hits = statResponseDtoList.getFirst().getHits();
