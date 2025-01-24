@@ -12,6 +12,7 @@ public interface EventFullDtoMapper {
     @Mapping(target = "initiator.id", source = "event.initiatorId")
     @Mapping(target = "initiator.name", source = "event.initiatorName")
     EventFullDto toDto(Event event, Long confirmedRequests, Long views);
+
     @Mapping(source = "eventFullDto.initiator.id", target = "initiatorId")
     @Mapping(source = "eventFullDto.initiator.name", target = "initiatorName")
     Event toEntity(EventFullDto eventFullDto);
