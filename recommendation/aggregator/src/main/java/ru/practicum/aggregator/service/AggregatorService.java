@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.aggregator.data.EventStat;
 import ru.practicum.aggregator.data.SimilarityStat;
-import ru.practicum.ewm.stats.avro.ActionTypeAvro;
 import ru.practicum.ewm.stats.avro.EventSimilarityAvro;
 import ru.practicum.ewm.stats.avro.UserActionAvro;
 
@@ -28,15 +27,14 @@ public class AggregatorService {
     private final Map<Long, EventStat> eventStatMap = new HashMap<>();
     // Map to store similarity stats Map<EventAID, Map<EventBID, SimilarityStat>>
     private final Table<Long, Long, SimilarityStat> eventSimilarityTable = HashBasedTable.create();
-    private static final Map<ActionTypeAvro, Double> WEIGHT_MAP =
-        Map.of(ActionTypeAvro.VIEW, 0.4, ActionTypeAvro.REGISTER, 0.8, ActionTypeAvro.LIKE, 1.0);
+
     private final Producer<String, EventSimilarityAvro> producer;
 
     public Optional<List<EventSimilarityAvro>> updateState(UserActionAvro userActionAvro) {
 
         Long userId = userActionAvro.getUserId();
         Long eventId = userActionAvro.getEventId();
-        Double weight = WEIGHT_MAP.get(userActionAvro.getActionType());
+        Double weight = userActionAvro.getActionType();
         List<EventSimilarityAvro> eventSimilarityAvroList = new ArrayList<>();
 
 

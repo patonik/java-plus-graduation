@@ -3,7 +3,7 @@ CREATE TABLE user_action (
                              id BIGSERIAL PRIMARY KEY,         -- Auto-generated ID
                              user_id BIGINT NOT NULL,          -- User identifier
                              event_id BIGINT NOT NULL,         -- Event identifier
-                             action_type VARCHAR(50) NOT NULL, -- Action type as a string
+                             action_type DOUBLE PRECISION NOT NULL, -- Action type as a string
                              timestamp BIGINT NOT NULL         -- Timestamp of the action
 );
 
