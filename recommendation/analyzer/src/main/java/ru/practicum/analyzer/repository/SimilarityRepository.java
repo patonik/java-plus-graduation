@@ -5,5 +5,5 @@ import org.springframework.stereotype.Repository;
 import ru.practicum.analyzer.entity.EventSimilarity;
 
 @Repository
-public interface SimilarityRepository extends JpaRepository<Long, EventSimilarity> {
+public interface SimilarityRepository extends JpaRepository<EventSimilarity, Long> {
 }

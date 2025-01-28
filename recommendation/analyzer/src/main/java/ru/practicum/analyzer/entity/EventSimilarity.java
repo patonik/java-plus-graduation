@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
+
 @Entity
 @Getter
 @Setter
@@ -20,6 +22,6 @@ public class EventSimilarity {
     private Long id;
     private Long eventIdA;
     private Long eventIdB;
-    private Double similarity;
-    private Long timestamp;
+    private Double score;
+    private Instant timestamp;
 }

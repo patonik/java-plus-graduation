@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.practicum.ewm.stats.avro.ActionTypeAvro;
 
+import java.time.Instant;
+
 @Entity
 @Getter
 @Setter
@@ -25,5 +27,5 @@ public class UserAction {
     private Long eventId;
     @Enumerated(EnumType.STRING)
     private ActionTypeAvro actionType;
-    private Long timestamp;
+    private Instant timestamp;
 }

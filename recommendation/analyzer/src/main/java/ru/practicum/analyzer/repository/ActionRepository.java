@@ -5,5 +5,5 @@ import org.springframework.stereotype.Repository;
 import ru.practicum.analyzer.entity.UserAction;
 
 @Repository
-public interface ActionRepository extends JpaRepository<Long, UserAction> {
+public interface ActionRepository extends JpaRepository<UserAction, Long> {
 }

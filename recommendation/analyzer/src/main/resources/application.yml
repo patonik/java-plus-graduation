@@ -24,6 +24,11 @@ spring:
     username: root
     password: root
     driver-class-name: org.postgresql.Driver
+  kafka:
+    consumer:
+      enable-auto-commit: false
+    listener:
+      ack-mode: RECORD
 logging:
   level:
     org.springframework.orm.jpa: WARN
