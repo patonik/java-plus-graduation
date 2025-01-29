@@ -1,5 +1,5 @@
 -- Table for UserAction
-CREATE TABLE user_action (
+CREATE TABLE IF NOT EXISTS user_action (
                              id BIGSERIAL PRIMARY KEY,         -- Auto-generated ID
                              user_id BIGINT NOT NULL,          -- User identifier
                              event_id BIGINT NOT NULL,         -- Event identifier
@@ -8,7 +8,7 @@ CREATE TABLE user_action (
 );
 
 -- Table for EventSimilarity
-CREATE TABLE event_similarity (
+CREATE TABLE IF NOT EXISTS event_similarity (
                                   id BIGSERIAL PRIMARY KEY,         -- Auto-generated ID
                                   event_id_a BIGINT NOT NULL,       -- First event ID
                                   event_id_b BIGINT NOT NULL,       -- Second event ID
