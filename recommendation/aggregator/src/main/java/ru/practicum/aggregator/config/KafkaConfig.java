@@ -36,6 +36,8 @@ public class KafkaConfig {
     public Producer<String, EventSimilarityAvro> eventSimilarityProducer() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:29092");
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+                "org.apache.kafka.common.serialization.StringSerializer");
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, EventSimilaritySerializer.class);
         return new KafkaProducer<>(props);
     }

@@ -47,6 +47,14 @@ public class RequestController implements RequestClient {
             .addArgument(userId)
             .addArgument(eventId)
             .log("Received request to add participation request with userId: {} and eventId: {}");
+        long millis = System.currentTimeMillis();
+        grpcClients.sendUserRegistration(UserAction.UserActionProto.newBuilder()
+                .setUserId(userId)
+                .setEventId(eventId)
+                .setActionType(UserAction.ActionTypeProto.ACTION_REGISTER)
+                .setTimestamp(Timestamp.newBuilder().setSeconds(millis / 1000)
+                        .setNanos((int) ((millis % 1000) * 1000000)).build())
+                .build());
         return new ResponseEntity<>(requestService.addMyRequest(userId, eventId), HttpStatus.CREATED);
     }
 
@@ -86,22 +94,5 @@ public class RequestController implements RequestClient {
     @GetMapping("/{eventId}/count")
     public ResponseEntity<RequestCount> getAllConfirmedRequestsForEvent(@PathVariable Long userId, @PathVariable Long eventId) {
         return new ResponseEntity<>(requestService.getAllConfirmedRequestsForEvent(userId, eventId), HttpStatus.OK);
-    }
-
-    @PostMapping
-    public ResponseEntity<Void> createRequest(@PathVariable long userId,
-                                              @RequestParam long eventId) {
-        // Send registration action to Collector
-        long millis = System.currentTimeMillis();
-        grpcClients.sendUserRegistration(UserAction.UserActionProto.newBuilder()
-            .setUserId(userId)
-            .setEventId(eventId)
-            .setActionType(UserAction.ActionTypeProto.ACTION_REGISTER)
-            .setTimestamp(Timestamp.newBuilder().setSeconds(millis / 1000)
-                .setNanos((int) ((millis % 1000) * 1000000)).build())
-            .build());
-
-        // Save request (mocked for now)
-        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }
