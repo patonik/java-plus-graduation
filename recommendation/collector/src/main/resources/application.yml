@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: collector
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
+
+server:
+  port: 0
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+grpc:
+  server:
+    port: 0
+
+kafka:
+  topics:
+    user: stats.user-actions.v1
+    event: stats.events-similarity.v1

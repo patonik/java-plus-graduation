@@ -85,6 +85,9 @@ public class PrivateEventService {
         Pageable pageable = PageRequest.of(from, size);
         List<EventShortDto> eventShortDtos = new ArrayList<>(privateEventRepository.getEvents(userId, pageable));
         log.info("found {} events", eventShortDtos.size());
+        if (eventShortDtos.isEmpty()) {
+            return eventShortDtos;
+        }
         StatParams statParams = Statistical.getParams(new ArrayList<>(eventShortDtos));
         log.info("parameters for statService created: {}", statParams);
         List<StatResponseDto> statResponseDto =

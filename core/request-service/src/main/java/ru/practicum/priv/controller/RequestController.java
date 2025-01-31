@@ -1,5 +1,7 @@
 package ru.practicum.priv.controller;
 
+import collector.UserAction;
+import com.google.protobuf.Timestamp;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.grpc.RequestServiceGrpcClients;
 import ru.practicum.interaction.client.RequestClient;
 import ru.practicum.interaction.dto.event.request.ParticipationRequestDto;
 import ru.practicum.interaction.dto.event.request.RequestCount;
@@ -28,6 +31,7 @@ import java.util.List;
 public class RequestController implements RequestClient {
 
     private final PrivateRequestServiceImpl requestService;
+    private final RequestServiceGrpcClients grpcClients;
 
     @GetMapping
     public ResponseEntity<List<ParticipationRequestDto>> getMyRequests(@PathVariable Long userId) {
@@ -43,6 +47,14 @@ public class RequestController implements RequestClient {
             .addArgument(userId)
             .addArgument(eventId)
             .log("Received request to add participation request with userId: {} and eventId: {}");
+        long millis = System.currentTimeMillis();
+        grpcClients.sendUserRegistration(UserAction.UserActionProto.newBuilder()
+                .setUserId(userId)
+                .setEventId(eventId)
+                .setActionType(UserAction.ActionTypeProto.ACTION_REGISTER)
+                .setTimestamp(Timestamp.newBuilder().setSeconds(millis / 1000)
+                        .setNanos((int) ((millis % 1000) * 1000000)).build())
+                .build());
         return new ResponseEntity<>(requestService.addMyRequest(userId, eventId), HttpStatus.CREATED);
     }
 

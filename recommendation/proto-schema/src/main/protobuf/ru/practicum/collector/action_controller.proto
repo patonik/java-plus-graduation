@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package collector;
+
+import "google/protobuf/empty.proto";
+import "ru/practicum/collector/user_action.proto";
+
+service ActionController {
+  rpc CollectUserAction(UserActionProto) returns (google.protobuf.Empty);
+}

@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package collector;
+
+import "google/protobuf/timestamp.proto";
+
+enum ActionTypeProto {
+  ACTION_VIEW = 0;     // Viewing the event page
+  ACTION_REGISTER = 1; // Application for participation
+  ACTION_LIKE = 2;     // Positive rating/like
+}
+
+message UserActionProto {
+  int64 user_id = 1;                      // User ID
+  int64 event_id = 2;                     // Event ID
+  ActionTypeProto action_type = 3;        // Action type
+  google.protobuf.Timestamp timestamp = 4; // Time of the action
+}

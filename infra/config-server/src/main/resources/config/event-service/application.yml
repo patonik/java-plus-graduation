@@ -19,3 +19,11 @@ spring:
         native:
           searchLocations:
             - classpath:config/{application}
+
+grpc:
+  client:
+    analyzer:
+      address: 'discovery:///analyzer'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
