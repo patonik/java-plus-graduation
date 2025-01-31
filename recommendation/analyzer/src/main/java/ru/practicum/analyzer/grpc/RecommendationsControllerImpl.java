@@ -57,13 +57,11 @@ public class RecommendationsControllerImpl extends RecommendationsControllerGrpc
     }
 
     private List<RecommendationsProto.RecommendedEventProto> fetchUserRecommendations(long userId, long maxResults) {
-        Set<SimilarityRepository.SimilarEventResult> similarEventsExcludingUserInteractions = new HashSet<>();
         List<Long> recentInteractedEvents = actionRepository.findRecentInteractionsByUser(userId, maxResults);
 
-        for (Long recentInteractedEvent : recentInteractedEvents) {
-            similarEventsExcludingUserInteractions.addAll(
-                similarityRepository.findSimilarEventsExcludingUserInteractions(recentInteractedEvent, userId));
-        }
+        Set<SimilarityRepository.SimilarEventResult> similarEventsExcludingUserInteractions = new HashSet<>(
+            similarityRepository.findSimilarEventsExcludingUserInteractionsForMultipleEvents(recentInteractedEvents,
+                userId));
 
         return similarEventsExcludingUserInteractions.stream()
             .sorted(Comparator.comparingDouble(SimilarityRepository.SimilarEventResult::getSimilarityScore).reversed())

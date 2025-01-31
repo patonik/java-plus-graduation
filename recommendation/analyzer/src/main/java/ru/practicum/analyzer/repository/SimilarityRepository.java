@@ -29,4 +29,10 @@ public interface SimilarityRepository extends JpaRepository<EventSimilarity, Lon
         "ORDER BY es.score DESC")
     List<SimilarEventResult> findSimilarEventsForEvent(Long eventId);
 
+    @Query("SELECT s FROM EventSimilarity s " +
+        "WHERE s.eventIdA IN :eventIds " +
+        "AND s.eventIdB NOT IN (SELECT ua.eventId FROM UserAction ua WHERE ua.userId = :userId)")
+    List<SimilarEventResult> findSimilarEventsExcludingUserInteractionsForMultipleEvents(List<Long> eventIds,
+                                                                                         Long userId);
+
 }
